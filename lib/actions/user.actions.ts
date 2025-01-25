@@ -8,14 +8,16 @@
 // 7. Verify the otp to authenticate the login
 
 // must be run on the server side and not the client side
-// server actions
+// server side actions
 
 "use server";
 import { ID, Query } from "node-appwrite";
 import { appwriteConfig } from "../appwrite/config";
-import { createAdminClient } from "../appwrite";
+import { createAdminClient, createSessionClient } from "../appwrite";
 import { parseStringify } from "../utils";
 import { cookies } from "next/headers";
+import { avatarPlaceholderUrl } from "@/constants";
+import { redirect } from "next/navigation";
 
 export const getUserByEmail = async (email: string) => {
   // get access to the database
@@ -46,23 +48,6 @@ export const sendEmailOTP = async ({ email }: { email: string }) => {
   }
 };
 
-// export const sendEmailOTP = async ({
-//   userId,
-//   email,
-// }: {
-//   userId: string;
-//   email: string;
-// }) => {
-//   const { account } = await createAdminClient();
-
-//   try {
-//     await account.createEmailToken(userId, email); // Changed: Use actual userId
-//     return userId; // Changed: Return the existing userId
-//   } catch (error) {
-//     handleError(error, "Failed to send email OTP");
-//   }
-// };
-
 export const createAccount = async ({
   fullName,
   email,
@@ -75,6 +60,7 @@ export const createAccount = async ({
   const accountId = await sendEmailOTP({ email });
   if (!accountId) throw new Error("Failed to send an OTP");
 
+  // create a new account
   if (!existingUser) {
     const { databases } = await createAdminClient();
 
@@ -85,8 +71,7 @@ export const createAccount = async ({
       {
         fullName,
         email,
-        avatar:
-          "https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png",
+        avatar: avatarPlaceholderUrl,
         accountId,
       }
     );
@@ -117,5 +102,56 @@ export const verifySecret = async ({
     return parseStringify({ sessionId: session.$id });
   } catch (error) {
     handleError(error, "Failed to verify OTP");
+  }
+};
+
+// fetch the current user in the home page
+
+export const getCurrentUser = async () => {
+  const { databases, account } = await createSessionClient();
+
+  const result = await account.get();
+
+  const user = await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.usersCollectionId,
+    [Query.equal("accountId", result.$id)]
+  );
+
+  if (user.total <= 0) return null;
+
+  return parseStringify(user.documents[0]);
+};
+
+export const signOutUser = async () => {
+  const { account } = await createSessionClient();
+
+  try {
+    // delete the current session
+    await account.deleteSession("current");
+    (await cookies()).delete("appwrite-session");
+  } catch (error) {
+    handleError(error, "Failed to sign out user");
+  } finally {
+    redirect("/sign-in");
+  }
+};
+
+export const signInUser = async ({ email }: { email: string }) => {
+  try {
+    const existingUser = await getUserByEmail(email);
+
+    // User exists, send OTP
+    if (existingUser) {
+      await sendEmailOTP({ email });
+      return parseStringify({ accountId: existingUser.accountId });
+    }
+
+    return parseStringify({
+      accountId: null,
+      error: "Account not found, please sign up.",
+    });
+  } catch (error) {
+    handleError(error, "Failed to sign in user");
   }
 };

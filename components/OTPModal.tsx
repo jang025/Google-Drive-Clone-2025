@@ -16,9 +16,9 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import Image from "next/image";
-import { useState } from "react";
-import { Button } from "./ui/button";
-import { sendEmailOTP, verifySecret } from "@/lib/actions/user.actions";
+import React, { useState } from "react";
+// import { Button } from "./ui/button";
+import { verifySecret } from "@/lib/actions/user.actions";
 import { useRouter } from "next/navigation";
 
 const OTPModal = ({
@@ -50,14 +50,14 @@ const OTPModal = ({
     setIsLoading(false);
   };
 
-  const handleResendOtp = async () => {
-    // call API to verify OTP
-    await sendEmailOTP({ email });
-  };
+  // const handleResendOtp = async () => {
+  //   // call API to verify OTP
+  //   await sendEmailOTP({ email });
+  // };
 
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-      <AlertDialogContent className="shad-dialog-alert">
+      <AlertDialogContent className="shad-alert-dialog">
         <AlertDialogHeader className="relative flex justify-center">
           <AlertDialogTitle className="h2 text-center">
             Enter your OTP
@@ -71,7 +71,7 @@ const OTPModal = ({
             />
           </AlertDialogTitle>
           <AlertDialogDescription className="subtitle-2 text-center text-light-100">
-            We've sent a code to{" "}
+            We&apos;ve sent a code to{" "}
             <span className="pl-1 text-brand">{email}</span>
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -105,7 +105,7 @@ const OTPModal = ({
                 />
               )}
             </AlertDialogAction>
-            <div className="subtitle-2 mt-2 text-center text-light-100">
+            {/* <div className="subtitle-2 mt-2 text-center text-light-100">
               Didn&apos;t get a code?
               <Button
                 type="button"
@@ -115,7 +115,7 @@ const OTPModal = ({
               >
                 Click to resend
               </Button>
-            </div>
+            </div> */}
           </div>
         </AlertDialogFooter>
       </AlertDialogContent>

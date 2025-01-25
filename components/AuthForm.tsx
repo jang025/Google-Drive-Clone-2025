@@ -16,17 +16,20 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { createAccount } from "@/lib/actions/user.actions";
+import { createAccount, signInUser } from "@/lib/actions/user.actions";
 import OTPModal from "./OTPModal";
 
 type FormType = "sign-in" | "sign-up";
 
 const AuthForm = ({ type }: { type: FormType }) => {
-  //Loading State
+  // Loading State
+
   const [isLoading, setIsLoading] = useState(false);
-  //Error State
+  // Error State
+
   const [errorMessage, setErrorMessage] = useState("");
   // account state
+
   const [accountId, setAccountId] = useState(null);
 
   const authFormSchema = (formType: FormType) => {
@@ -55,13 +58,21 @@ const AuthForm = ({ type }: { type: FormType }) => {
     // ✅ This will be type-safe and validated.
     setIsLoading(true);
     setErrorMessage("");
-
     try {
-      const user = await createAccount({
-        fullName: values.fullName || "",
-        email: values.email,
-      });
-      setAccountId(user.accountId);
+      const user =
+        type === "sign-up"
+          ? await createAccount({
+              fullName: values.fullName || "",
+              email: values.email,
+            })
+          : await signInUser({ email: values.email });
+      if (user.accountId) {
+        setAccountId(user.accountId);
+      } else if (user.error) {
+        setErrorMessage(user.error);
+      } else {
+        setErrorMessage("An unexpected error occurred. Please try again.");
+      }
     } catch {
       setErrorMessage("Failed to create account. Please try again");
     } finally {
@@ -74,7 +85,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-8 auth-form"
+          className="auth-form space-y-8"
         >
           {/* conditionally render the title of the form */}
           <h1 className="form-title">
@@ -121,7 +132,11 @@ const AuthForm = ({ type }: { type: FormType }) => {
               </FormItem>
             )}
           />
-          <Button type="submit" className="form-submit-button">
+          <Button
+            type="submit"
+            className="form-submit-button"
+            disabled={isLoading}
+          >
             {/* conditionally render the title of the button */}
             {type === "sign-in" ? "Sign In" : "Sign Up"}
             {/* loading state */}
