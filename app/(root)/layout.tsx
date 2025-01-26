@@ -4,6 +4,10 @@ import SideBar from "@/components/SideBar";
 import { getCurrentUser } from "@/lib/actions/user.actions";
 import { redirect } from "next/navigation";
 import React from "react";
+
+// this page cannot be rendered statically because it uses data from cookies
+// cookies are only available at request time
+// force the page to render on the server
 export const dynamic = "force-dynamic";
 const layout = async ({ children }: { children: React.ReactNode }) => {
   const currentUser = await getCurrentUser();
