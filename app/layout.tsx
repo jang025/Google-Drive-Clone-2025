@@ -10,7 +10,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Google Drive Clone",
+  title: "Storage App",
   description: "Storage Management & File Sharing Platform",
 };
 
