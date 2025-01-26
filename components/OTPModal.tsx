@@ -31,11 +31,13 @@ const OTPModal = ({
   const [isOpen, setIsOpen] = useState(true);
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMessage("");
 
     try {
       // call API to verify OTP
@@ -44,10 +46,11 @@ const OTPModal = ({
 
       if (sessionId) router.push("/");
     } catch (error) {
-      console.log("Failed to verify OTP", error);
+      console.error("Failed to verify OTP", error);
+      setErrorMessage("Failed to verify OTP. Please try again");
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   // const handleResendOtp = async () => {
@@ -75,6 +78,9 @@ const OTPModal = ({
             <span className="pl-1 text-brand">{email}</span>
           </AlertDialogDescription>
         </AlertDialogHeader>
+
+        {/* error message */}
+        {errorMessage && <p className="error-message">{errorMessage}</p>}
 
         <InputOTP maxLength={6} value={password} onChange={setPassword}>
           <InputOTPGroup className="shad-otp">

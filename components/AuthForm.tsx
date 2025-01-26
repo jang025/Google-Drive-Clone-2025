@@ -151,7 +151,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
             )}
           </Button>
           {/* error message */}
-          {errorMessage && <p className="error-message">*{errorMessage}</p>}
+          {errorMessage && <p className="error-message">{errorMessage}</p>}
           <div className="body-2 flex justify-center">
             <p className="text-light-100">
               {type === "sign-in"
